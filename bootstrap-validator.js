@@ -1,7 +1,6 @@
 ﻿(function ($) {
-    var _stockNames = [];
 	var _rgxEmail = /^[0-9a-z._%+-]+@[0-9a-z.-]+\.[a-z]{2,6}$/i;
-	var _rgxUrl = /^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})+$/i;
+	var _rgxUrl = new RegExp('^https?://[^.]+?(\.[^.]+?)*$', 'i');
 	
     // Stock validators.
     //
@@ -83,7 +82,6 @@
 			return _rgxUrl.test(value) ? null : (msg || "Not a valid URL.");
 		}
     };    
-	_validators.__defineGetter__('stockNames', function() { return _stockNames; });
 	
     function getValueFromElement() {
         var $this = $(this);
@@ -144,7 +142,7 @@
 
 			var errorTemplate = $this.data('error-template') || '<span class="help-inline"><i class="icon-warning-sign"></i></span>';
             $err = $(errorTemplate);
-			$err.addClass('error-placeholder');
+			$err.addClass('validation-error');
             $context.after($err);
 
             $err.popover({ title: 'Error', placement: 'right', trigger: 'hover', content: msg });
@@ -160,7 +158,7 @@
 		if (
 			!force
 			&& $this.is('input, textarea, select')
-			&& !$this.hasData('validate-activated')
+			&& !$this.data('validate-activated')
 			&& !getValueFromElement.apply(this)
 		)
 		{
@@ -232,10 +230,12 @@
     function onSubmit(e) {
         if (!validateContainer.call(this)) {
             e.preventDefault();
-            return false;
+			e.stopImmediatePropagation();
+			return false;
         }
-        else
+        else {
             return true;
+		}
     }
 
     function addCustomValidator(name, fn) {
@@ -247,18 +247,24 @@
     }
 
     $(document).ready(function () {
-		for (var i in _validators) {
-			_stockNames.push(i);
-		}
+		var stockNames = [];
 		
-		$(document).on('submit', 'form.validate', onSubmit);
-        $(document).on('blur', '.validate input[type!="hidden"], .validate select, .validate textarea', onBlur);
+		for (var i in _validators) {
+			stockNames.push(i);
+		}
+		_validators.__defineGetter__('stockNames', function() { return stockNames; });
+		
+		$(document).on('submit.validate', 'form.validate', onSubmit);
+        $(document).on('blur.validate', '.validate input[type!="hidden"], .validate select, .validate textarea', onBlur);
 
         $.validator = {
             addCustomValidator: function() {
                 var options = Array.prototype.slice.call(arguments, 0);
                 addCustomValidator.apply(this, options);
-            }
+            },
+			submitHandler: function(selector, fn) {
+				$(document).on('submit', selector, fn);
+			}
         };
 
         $.fn.validator = function (method) {
