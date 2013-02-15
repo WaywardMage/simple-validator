@@ -1,5 +1,6 @@
 ﻿(function ($) {
-    var _rgxEmail = /^[0-9a-z._%+-]+@[0-9a-z.-]+\.[a-z]{2,6}$/i;
+    var _stockNames = [];
+	var _rgxEmail = /^[0-9a-z._%+-]+@[0-9a-z.-]+\.[a-z]{2,6}$/i;
 	var _rgxUrl = /^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})+$/i;
 	
     // Stock validators.
@@ -81,12 +82,9 @@
 		'url': function(value, msg) {
 			return _rgxUrl.test(value) ? null : (msg || "Not a valid URL.");
 		}
-    };
-
-    _validators.__defineGetter__('stockNames', function () {
-        return ['required', 'stringlength', 'number', 'date', 'time', 'datetime', 'regex', 'match', 'email'];
-    });
-
+    };    
+	_validators.__defineGetter__('stockNames', function() { return _stockNames; });
+	
     function getValueFromElement() {
         var $this = $(this);
 
@@ -249,7 +247,11 @@
     }
 
     $(document).ready(function () {
-        $(document).on('submit', 'form.validate', onSubmit);
+		for (var i in _validators) {
+			_stockNames.push(i);
+		}
+		
+		$(document).on('submit', 'form.validate', onSubmit);
         $(document).on('blur', '.validate input[type!="hidden"], .validate select, .validate textarea', onBlur);
 
         $.validator = {
