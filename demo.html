@@ -9,6 +9,23 @@
 		
 		<script>
 			$(document).ready(function() {
+				var overridden = false;
+
+				$('#btnSwap').click(function() {
+					if (overridden) {
+						$.validator.setCustomTemplate(null);
+						overridden = false;
+					}
+					else {
+						$.validator.setCustomTemplate('<span class="inline-help"><i class="icon-info-sign"></i></span>');
+						overridden = true;
+					}
+				});
+
+				$('#btnClear').click(function() {
+					$('#frmSample').validator('reset');
+				});
+
 				$.validator.submitHandler('#frmSample', function() {
 					window.alert('Everything looks good, nice work!');
 					return false;
@@ -56,6 +73,8 @@
 					<div class="control-group">
 						<div class="controls">
 							<input id="btnSubmit" type="submit" class="btn btn-primary" value="Submit!" />
+							<button id="btnSwap" type="button" class="btn">Swap</button>
+							<button id="btnClear" type="button" class="btn">Clear</button>
 						</div>
 					</div>
 				</fieldset>

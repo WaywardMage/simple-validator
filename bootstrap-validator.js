@@ -1,4 +1,7 @@
 ﻿(function ($) {
+	var _defaultTemplate = '<span class="help-inline"><i class="icon-warning-sign"></i></span>';
+
+	var _template = null;
 	var _rgxEmail = /^[0-9a-z._%+-]+@[0-9a-z.-]+\.[a-z]{2,6}$/i;
 	var _rgxUrl = new RegExp('^https?://[^.]+?(\.[^.]+?)*$', 'i');
 	
@@ -133,22 +136,24 @@
         else
             $context = $this;
 
-        var $err = $context.next('.validation-error');
+        var $err = $context.next('.validation-error-msg');
         $err.popover('destroy');
         $err.remove();
 
         if (msg) {
             $this.closest('.control-group').addClass('error');
 
-			var errorTemplate = $this.data('error-template') || '<span class="help-inline"><i class="icon-warning-sign"></i></span>';
-            $err = $(errorTemplate);
-			$err.addClass('validation-error');
+			var template = _template || _defaultTemplate;
+            $err = $(template);
+			$err.addClass('validation-error-msg');
             $context.after($err);
-
             $err.popover({ title: 'Error', placement: 'right', trigger: 'hover', content: msg });
+
+			$this.addClass('validation-error');
         }
         else {
             $this.closest('.control-group').removeClass('error');
+			$this.removeClass('validation-error');
         }
     }
 
@@ -176,22 +181,25 @@
     function resetContainer() {
         $(this)
             .find('[data-validators]')
-            .each(function () { processErrorMsg.call(this); })
+            .each(function () {
+				$(this).removeData('validate-activated');
+				processErrorMsg.call(this);
+			})
         ;
     }
 
-    function validateContainer() {
+    function validateContainer(erroredOnly) {
         var $this = $(this);
         var success = true;
 
+		var findStr = erroredOnly ? '.validation-error' : '[data-validators]';
+		var $elements = $this.find(findStr);
+
         resetContainer.call(this);
 
-        $this
-            .find('[data-validators]')
-            .each(function () {
-                success = validateElement.call(this, true) && success;
-            })
-        ;
+		$elements.each(function () {
+			success = validateElement.call(this, true) && success;
+        });
 
         return success;
     }
@@ -264,6 +272,13 @@
             },
 			submitHandler: function(selector, fn) {
 				$(document).on('submit', selector, fn);
+			},
+			setCustomTemplate: function(html) {
+				_template = !html ? _defaultTemplate : html;
+				
+				$('.validate').each(function() {
+					$.proxy(validateContainer, this)(true);
+				});
 			}
         };
 
