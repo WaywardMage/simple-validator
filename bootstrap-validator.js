@@ -108,11 +108,14 @@
 
             var msg = null;
             var customMsg = $this.data(name + '-msg');
+			var value = $.proxy(getValueFromElement, this)();
 
-            if (_validators.stockNames.indexOf(name) < 0)
-                msg = !_validators[name].call(this, getValueFromElement(this)) ? (customMsg || "Invalid value.") : null;
+            if (_validators.stockNames.indexOf(name) < 0) {
+				var result = $.proxy(_validators[name], this)(value);
+				msg = result ? null : (customMsg || "Invalid value.";
+			}
             else
-                msg = _validators[name].call(this, getValueFromElement.call(this), customMsg);
+				msg = $.proxy(_validators[name], this)(value, customMsg);
 
             if (msg) return msg;
         }
@@ -164,7 +167,7 @@
 			!force
 			&& $this.is('input, textarea, select')
 			&& !$this.data('validate-activated')
-			&& !getValueFromElement.apply(this)
+			&& !$.proxy(getValueFromElement, this)()
 		)
 		{
 			return;
@@ -172,8 +175,8 @@
 		
         $this.data('validate-activated', true);
 
-        var msg = getValidationMessage.call(this);
-        processErrorMsg.call(this, msg);
+		var msg = $.proxy(getValidationmessage, this)();
+		$.proxy(processErrorMsg, this)(msg);
 
         return typeof msg === 'undefined' || msg === null;
     }
@@ -183,7 +186,7 @@
             .find('[data-validators]')
             .each(function () {
 				$(this).removeData('validate-activated');
-				processErrorMsg.call(this);
+				$.proxy(processErrorMsg, this)();
 			})
         ;
     }
@@ -195,10 +198,10 @@
 		var findStr = erroredOnly ? '.validation-error' : '[data-validators]';
 		var $elements = $this.find(findStr);
 
-        resetContainer.call(this);
+		$.proxy(resetContainer, this)();
 
 		$elements.each(function () {
-			success = validateElement.call(this, true) && success;
+			success = $.proxy(validateElement, this)(true) && success;
         });
 
         return success;
@@ -214,8 +217,8 @@
         if ($container.length < 1) return;
         
         $container.hasClass('validate')
-            ? validateContainer.call($container[0])
-            : validateElement.call($container[0], true)
+			? $.proxy(validateContainer, $container[0])()
+			: $.proxy(validateElement, $container[0])(true);
         ;
     }
 
@@ -223,7 +226,7 @@
         var $this = $(this);
         
         if (!$this.is('[data-validators]')) {
-            if ($this.is('[data-triggers-container]')) fireTriggers.call(this);
+            if ($this.is('[data-triggers-container]')) $.proxy(fireTriggers, this)();
             return;
         }
 
@@ -232,11 +235,11 @@
             if (!value && $this.data('validation-held')) return;
         }
 
-        validateElement.call(this);
+		$.proxy(validateElement, this)();
     }
 
     function onSubmit(e) {
-        if (!validateContainer.call(this)) {
+		if (!$.proxy(validateContainer, this)()) { 
             e.preventDefault();
 			e.stopImmediatePropagation();
 			return false;
@@ -289,11 +292,17 @@
             this.each(function () {
                 switch (method.toLowerCase()) {
                     case 'validate':
-                        result = (!isContainer ? validateElement.call(this) : validateContainer.call(this)) && result;
+						result = !isContainer
+							? $.proxy(validateElement, this)()
+							: $.proxy(validateContainer, this)()
+						&& result;
                         break;
 
                     case 'reset':
-                        isContainer ? resetContainer.call(this) : processErrorMsg.call(this, null);
+						isContainer
+							? $.proxy(resetContainer, this)()
+							: $.proxy(processErrorMsg, this)(null)
+						;
                         break;
                 }
             });
