@@ -36,6 +36,7 @@
         },
         'number': function(value, msg) {
             var $this = $(this);
+            if (!value) return null;
             
             var number = parseInt(value);
             if (isNaN(number)) return msg || 'Not a number.';
@@ -107,8 +108,7 @@
             if (!_validators[name]) continue;
 
             var msg = null;
-            var customMsg = $this.data(name + '-msg');
-			var value = $.proxy(getValueFromElement, this)();
+            var customMsg = $this.data(name.toLowerCase() + '-msg');
 
             if (_validators.stockNames.indexOf(name) < 0) {
 				var result = $.proxy(_validators[name], this)(value);
@@ -250,9 +250,18 @@
     }
 
     function addCustomValidator(name, fn) {
-        if (!name || typeof fn !== 'function') return;
+        if (!name) return;
 
-        if (_validators.stockNames.indexOf(name) < 0) {
+        if (typeof name === 'object') {
+            var obj = name;
+
+            for (var key in obj) {
+                if (_validators.stockNames.indexOf(key) < 0) {
+                    _validators[key] = obj[key];
+                }
+            }
+        }
+        else if (fn && _validators.stockNames.indexOf(name) < 0) {
             _validators[name] = fn;
         }
     }
