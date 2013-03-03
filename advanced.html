@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Bootstrap Validator - Advanced Test</title>
+
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet" />
+
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+        <script src="bootstrap-validator.js"></script>
+
+        <script type="text/javascript">
+            var _toggle = false;
+
+            $(document).ready(function() {
+                // Custom validators here
+                $.validator.addCustomValidators({
+                    'time': function(value) {
+                        var time = value.match(/^\s*(\d+)(?::(\d\d))?\s*([ap]m?)?\s*$/i);
+                        if (!time || time.length < 2) return false;
+
+                        var hours = time[1];
+                        var minutes = time[2];
+                        var ampm = time[3];
+
+                        // Valid case 1: Military time
+                        if (hours > 0 && hours < 24 && !ampm) return true;
+
+                        // Valid case 2: Standard time
+                        if (hours >= 1 && hours <= 12 && ampm) return true;
+
+                        // Everyone else fails
+                        return false;
+                     }
+                });
+
+                $.validator.submitHandler('form.validate', function() {
+                    window.alert('Everything looks great. Good work!');
+                    return false;
+                });
+
+                $('#btnToggle').click(function() {
+                    // Backend template set
+                    if (!_toggle) {
+                        $.validator.setCustomTemplate('<span class="help-inline"><i class="icon-remove-sign"></i></span');
+                        _toggle = true;
+                    }
+                    else {
+                        // To reset, just pass in null or call without params.
+                        $.validator.setCustomTemplate();
+                        _toggle = false;
+                    }
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+    <div class="container">
+        <form class="validate form-horizontal">
+            <fieldset>
+                <legend>Advanced Valiation Test</legend>
+
+                <div class="control-group">
+                    <label class="control-label">Custom (Time)</label>
+                    <div class="controls">
+                        <input type="text" data-validators="time" data-time-msg="Not a valid time." placeholder="Time" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Custom Placement</label>
+                    <div class="controls">
+                        <p><span id="spn1">You can also move the popup around. For instance, here we put it after this paragraph.</span></p>
+                        <input type="text" data-validators="required" placeholder="Required" data-error-after="#spn1" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Custom Error Notification</label>
+                    <div class="controls">
+                        <p>Not only that, but you can set the notification HTML on the fly&mdash;for instance, if you wanted a different icon.</p>
+                        <input type="text" data-validators="required" placeholder="Required" data-required-msg="You're still limited to a popover for details, though&mdash;for now." />
+                        <button id="btnToggle" type="button" class="btn">Toggle!</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <input type="submit" value="Submit!" />
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    </body>
+</html>

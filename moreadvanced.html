@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Bootstrap Validator - Even More Advanced</title>
+
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet" />
+
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+        <script src="bootstrap-validator.js"></script>
+
+        <script type="text/javascript">
+            var _toggle = false;
+
+            $(document).ready(function() {
+                $.validator.addCustomValidators({
+                    'phonenumber': function() {
+                        var $inputs = $(this).find('input[type="text"]');
+
+                        return (
+                                !$inputs.eq(0).val()
+                                && !$inputs.eq(1).val()
+                                && !$inputs.eq(2).val()
+                            )
+                            || (
+                                /^\d{3}$/.test($inputs.eq(0).val())
+                                && /^\d{3}$/.test($inputs.eq(1).val())
+                                && /^\d{4}$/.test($inputs.eq(2).val())
+                            )
+                        ;
+                    }
+                });
+
+                $.validator.submitHandler('form.validate', function() {
+                    window.alert('Everything looks great. Good work!');
+                    return false;
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+    <div class="container">
+        <form class="validate form-horizontal">
+            <fieldset>
+                <legend>Even More Advanced Valiation Test</legend>
+
+                <p>Boostrap Validator will also let you put validators on containers&mdash;although you'll have to use custom ones, as containers will (sensibly) return 'null' as their value.</p>
+                <p>In addition, it allows you to define trigger elements. In other words, while the element <em>itself</em> doesn't have validation performed on it, changing it will trigger some validation elsewhere.</p>
+                <p style="margin-bottom:40px;">Naturally, these two fit very well together. We'll use them and some custom positioning to create a single 'Phone Number' control out of three text boxes.</p>
+
+                <div class="control-group">
+                    <label class="control-label">Phone Number</label>
+                    <div class="controls">
+                        <div class="phone-number" data-validators="phonenumber" data-phonenumber-msg="Not a valid phone number." data-error-after-local='input[type="text"]:eq(2)'>
+                            <span>(</span>
+                            <input type="text" placeholder="xxx" class="input-mini" maxlength="3" data-triggers-container=".phone-number"/>
+                            <span>)&nbsp;</span>
+                            <input type="text" placeholder="xxx" class="input-mini" maxlength="3" data-triggers-container=".phone-number" />
+                            <span>&ndash;</span>
+                            <input type="text" placeholder="xxxx" class="input-mini" maxlength="4" data-triggers-container=".phone-number" />
+                        </div>
+                    </div>
+                </div>
+
+                <p>The only javascript coding necessary for this was the submit hook and custom phone number validator. Everything else was done with data attributes. Hopefully, this demonstrates the power of Bootstrap Validator.</p>
+            </fieldset>
+        </form>
+    </div>
+    </body>
+</html>
