@@ -224,6 +224,36 @@
         ;
     }
 
+	function validateGroup(initialSuccess) {
+		var self = this;
+		var $this = $(this);
+		var validationGroup = $this.data('validation-group');
+		var $container = $this.closest('.validate');
+		
+		var $group = $this
+			.closest('.validate')
+			.find('[data-validators]')
+			.filter(function() {
+				return this !== self
+					&& $(this).data('validation-group') === validationGroup
+				;
+			})
+		;
+
+		var $successes = $group.filter(function() {
+			if ($(this).is('input, select, textarea'))
+				return $.proxy(validateElement, this)(true);
+			else
+				return $.proxy(validateContainer, this)();
+		});
+
+		// Hackaround to make sure control-group errors are set. We'll
+		// need to fix the design scheme at some point.
+		if (!initialSuccess || $successes.length !== $group.length) {
+			$this.closest('.control-group').addClass('error');
+		}
+	}
+
     function onBlur() {
         var $this = $(this);
         
@@ -234,10 +264,14 @@
 
         if ($this.is('input, select, textarea')) {
             var value = $this.is('input') ? $this.val() : $this.find('option:selected').val();
-            if (!value && $this.data('validation-held')) return;
+            if (!value && $this.data('validate-activate')) return;
         }
 
-        $.proxy(validateElement, this)();
+        var initialSuccess = $.proxy(validateElement, this)();
+
+		if ($this.is('[data-validation-group]')) {
+			$.proxy(validateGroup, this)(initialSuccess);
+		}
     }
 
     function onSubmit(e) {
