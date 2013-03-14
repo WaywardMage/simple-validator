@@ -8,7 +8,7 @@
 
         <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
-        <script src="bootstrap-validator.min.js"></script>
+        <script src="bootstrap-validator.js"></script>
 
         <script type="text/javascript">
             var _toggle = false;
@@ -18,21 +18,27 @@
                     'phonenumber': function() {
                         var $inputs = $(this).find('input[type="text"]');
 
-                        return (
-                                !$inputs.eq(0).val()
-                                && !$inputs.eq(1).val()
-                                && !$inputs.eq(2).val()
-                            )
-                            || (
-                                /^\d{3}$/.test($inputs.eq(0).val())
-                                && /^\d{3}$/.test($inputs.eq(1).val())
-                                && /^\d{4}$/.test($inputs.eq(2).val())
-                            )
-                        ;
+						if (
+							!$inputs.eq(0).val()
+							&& !$inputs.eq(1).val()
+							&& !$inputs.eq(2).val()
+						) {
+							return 'Phone number is required.';
+						}
+
+						if (
+							!/^\d{3}$/.test($inputs.eq(0).val())
+                            || !/^\d{3}$/.test($inputs.eq(1).val())
+                           	|| !/^\d{4}$/.test($inputs.eq(2).val())
+                        ) {
+							return 'Invalid phone number.';
+						}
+
+						return null;
                     }
                 });
 
-                $.validator.submitHandler('form.validate', function() {
+				$('form.validate').on('success.validate', function() {
                     window.alert('Everything looks great. Good work!');
                     return false;
                 });
@@ -53,7 +59,7 @@
                 <div class="control-group">
                     <label class="control-label">Phone Number</label>
                     <div class="controls">
-                        <div class="phone-number" data-validators="phonenumber" data-phonenumber-msg="Not a valid phone number." data-error-after-local='input[type="text"]:eq(2)'>
+                        <div class="phone-number" data-validators="phonenumber" data-error-after-local='input[type="text"]:eq(2)'>
                             <span>(</span>
                             <input type="text" placeholder="xxx" class="input-mini" maxlength="3" data-triggers-container=".phone-number"/>
                             <span>)&nbsp;</span>
@@ -63,6 +69,12 @@
                         </div>
                     </div>
                 </div>
+				
+				<div class="control-group">
+					<div class="controls">
+						<input class='btn btn-primary' type='submit' value='OK' />
+					</div>
+				</div>
 
                 <p>The only javascript coding necessary for this was the submit hook and custom phone number validator. Everything else was done with data attributes. Hopefully, this demonstrates the power of Bootstrap Validator.</p>
             </fieldset>

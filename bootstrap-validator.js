@@ -8,10 +8,10 @@
     // Stock validators.
     //
     var _validators = {
-        'required': function(value, msg) {
-            return !value ? (msg || "Required.") : null;
+        'required': function(value) {
+            return !value ? 'Required' : null;
         },
-        'stringlength': function(value, msg) {
+        'stringlength': function(value) {
             var $this = $(this);
             
             if (value) {
@@ -22,24 +22,24 @@
                 if (isNaN(max)) max = null;
 
                 if (min > 0 && max > 0 && (value.length < min || value.length > max)) {
-                    return msg || "Must be between " + min.toString() + " and " + max.toString() + " characters long.";
+                    return "Must be between " + min.toString() + " and " + max.toString() + " characters long.";
                 }
                 else if (min > 0 && value.length < min) {
-                    return msg || "Must be " + min.toString() + " characters or more."
+                    return "Must be " + min.toString() + " characters or more."
                 }
                 else if (max > 0 && value.length > max) {
-                    return msg || "Must be " + max.toString() + " characters or less."
+                    return "Must be " + max.toString() + " characters or less."
                 }
             }
 
             return null;
         },
-        'number': function(value, msg) {
+        'number': function(value) {
             var $this = $(this);
             if (!value) return null;
             
             var number = parseInt(value, 10);
-            if (isNaN(number)) return msg || 'Not a number.';
+            if (isNaN(number)) return 'Not a number.';
 
             var min = parseInt($this.data('number-min'), 10);
             if (isNaN(min)) min = null;
@@ -48,43 +48,43 @@
             if (isNaN(max)) max = null;
 
             if (min > 0 && max > 0 && (number < min || number > max)) {
-                return msg || "Must be between " + min.toString() + " and " + max.toString() + ".";
+                return "Must be between " + min.toString() + " and " + max.toString() + ".";
             }
             else if (min > 0 && number < min) {
-                return msg || "Must be " + min.toString() + " or greater.";
+                return "Must be " + min.toString() + " or greater.";
             }
             else if (max > 0 && number > max) {
-                return msg || "Must be " + max.toString() + " or less.";
+                return "Must be " + max.toString() + " or less.";
             }
 
             return null;
         },
-        'regex': function(value, msg) {
+        'regex': function(value) {
             var pattern = $(this).data('regex-pattern');
             var caseSensitive = $(this).data('regex-case-sensitive');
 
             if (pattern && value) {
                 var rgx = new RegExp(pattern, !caseSensitive ? 'i' : '');
-                if (!rgx.test(value)) return msg || "Invalid value.";
+                if (!rgx.test(value)) return "Invalid value.";
             }
 
             return null;
         },
-        'match': function(value, msg) {
+        'match': function(value) {
             var selector = $(this).data('match-target');
             var $target = !selector ? null : $(selector);
                     
             if ($target && $target.length > 0 && value!==$target.val()) {
-                return msg || "Values do not match.";
+                return "Values do not match.";
             }
 
             return null;
         },
-        'email': function(value, msg) {
-            return !value || _rgxEmail.test(value) ? null : (msg || "Not a valid email address.");
+        'email': function(value) {
+            return !value || _rgxEmail.test(value) ? null : "Not a valid email address.";
         },
-        'url': function(value, msg) {
-            return !value || _rgxUrl.test(value) ? null : (msg || "Not a valid URL.");
+        'url': function(value) {
+            return !value || _rgxUrl.test(value) ? null : "Not a valid URL.";
         }
     };    
     
@@ -108,18 +108,12 @@
             var name = validators[i];
             if (!_validators[name]) continue;
 
-            var msg = null;
-            var customMsg = $this.data(name.toLowerCase() + '-msg');
             var value = $.proxy(getValueFromElement, this)();
 
-            if (_validators.stockNames.indexOf(name) < 0) {
-                var result = $.proxy(_validators[name], this)(value);
-                msg = result ? null : (customMsg || "Invalid value.");
-            }
-            else
-                msg = $.proxy(_validators[name], this)(value, customMsg);
+            var msg = $.proxy(_validators[name], this)(value);
+            var customMsg = $this.data(name.toLowerCase() + '-msg');
 
-            if (msg) return msg;
+            if (msg) return customMsg || msg;
         }
 
         return null;
@@ -280,9 +274,15 @@
             e.stopImmediatePropagation();
             return false;
         }
-        else {
-            return true;
-        }
+
+		var successEvent = $.Event('success');
+		$(this).trigger(successEvent);
+
+		if (successEvent.isDefaultPrevented()) e.preventDefault();
+		if (successEvent.isPropagationStopped()) e.stopPropagation();
+		if (successEvent.isImmediatePropagationStopped()) e.stopImmediatePropagation();
+		
+		return successEvent.result;
     }
 
     function addCustomValidators(name, fn) {
@@ -318,14 +318,6 @@
                 var options = Array.prototype.slice.call(arguments, 0);
                 addCustomValidators.apply(this, options);
             },
-            submitHandler: function(selector, fn) {
-                $(document).on('submit', selector, function(e) {
-                    // Returning false doesn't QUITE work like it should,
-                    // so we help it out.
-                    //
-                    if (!fn(e)) e.preventDefault();
-                });
-            },
             setCustomTemplate: function(html) {
                 _template = !html ? _defaultTemplate : html;
                 
@@ -336,6 +328,7 @@
         };
 
         $.fn.validator = function (method) {
+			var options = Array.prototype.slice.call(arguments, 1);
             var result = true;
             var isContainer = this.hasClass('validate');
 
@@ -347,6 +340,12 @@
                             : $.proxy(validateContainer, this)()
                         && result;
                         break;
+
+					case 'success':
+						if (options.length > 0) {
+							$(this).on('success.validate', options[0]);
+						}
+						break;
 
                     case 'reset':
                         isContainer

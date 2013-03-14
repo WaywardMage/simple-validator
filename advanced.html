@@ -8,7 +8,7 @@
 
         <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
-        <script src="bootstrap-validator.min.js"></script>
+        <script src="bootstrap-validator.js"></script>
 
         <script type="text/javascript">
             var _toggle = false;
@@ -18,24 +18,24 @@
                 $.validator.addCustomValidators({
                     'time': function(value) {
                         var time = value.match(/^\s*(\d+)(?::(\d\d))?\s*([ap]m?)?\s*$/i);
-                        if (!time || time.length < 2) return false;
+                        if (!time || time.length < 2) return 'Not a valid time';
 
                         var hours = time[1];
                         var minutes = time[2];
                         var ampm = time[3];
 
                         // Valid case 1: Military time
-                        if (hours > 0 && hours < 24 && !ampm) return true;
+                        if (hours > 0 && hours < 24 && !ampm) return null;
 
                         // Valid case 2: Standard time
-                        if (hours >= 1 && hours <= 12 && ampm) return true;
+                        if (hours >= 1 && hours <= 12 && ampm) return null;
 
                         // Everyone else fails
-                        return false;
+                        return 'Not a valid time.';
                      }
                 });
 
-                $.validator.submitHandler('form.validate', function() {
+				$('form.validate').on('success.validate', function() {
                     window.alert('Everything looks great. Good work!');
                     return false;
                 });
@@ -65,7 +65,7 @@
                 <div class="control-group">
                     <label class="control-label">Custom (Time)</label>
                     <div class="controls">
-                        <input type="text" data-validators="time" data-time-msg="Not a valid time." placeholder="Time" />
+                        <input type="text" data-validators="time" placeholder="Time" />
                     </div>
                 </div>
 				<div class="control-group">

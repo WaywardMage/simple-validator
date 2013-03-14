@@ -8,7 +8,7 @@
 
         <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
-        <script src="bootstrap-validator.min.js"></script>
+        <script src="bootstrap-validator.js"></script>
 
         <script type="text/javascript">
             // The *only* reason we have to write code is so we can interrupt
@@ -16,12 +16,10 @@
             // world scenario, we'd just let the page post back.
             //
             $(document).ready(function() {
-                // We have to hook at a document level or our handler will
-                // fire before validation due to jQuery's selector behaviors.
-                // (i.e. More specific fires first) submitHandler() is just
-                // a nice shortcut to $(document).on('submit', ...).
-                //
-                $.validator.submitHandler('form.validate', function() {
+				// .validate is optional here but a good idea for
+				// organizational purposes.
+				//
+				$('form.validate').on('success.validate',  function() {
                     window.alert('Everything looks great. Good work!');
                     return false;
                 });
