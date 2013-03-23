@@ -1,6 +1,4 @@
 ﻿(function ($) {
-    var _defaultTemplate = '<span class="help-inline"><i class="icon-warning-sign"></i></span>';
-
     var _template = null;
     var _rgxEmail = /^[0-9a-z._%+-]+@[0-9a-z.-]+\.[a-z]{2,6}$/i;
     var _rgxUrl = new RegExp('^https?://[^.]+?(\.[^.]+?)*$', 'i');
@@ -119,6 +117,38 @@
         return null;
     }
 
+	function onHideError(e, context, err) {
+		$(err).remove();
+	}
+	
+	function onShowError(e, context, msg, oldErr, newErr) {
+		if (oldErr) $(oldErr).remove();
+		$(context).after(newErr);
+	}
+
+	function hideError(context, msg) {
+		var $err = $(context).next('.validation-error-msg');
+		var err = $err.length > 0 ? $err[0] : null;
+		
+		var $this = $(this);
+		$this.removeClass('validation-error');
+		
+		$this.trigger('hideerror', [context, err]);
+	}
+
+    function showError(context, msg) {
+    	var template = (_template || '<span>%s</span>').replace(/%s/, msg);
+    	var $oldErr = $(context).next('.validation-error-msg');
+    	var oldErr = $oldErr.length > 0 ? $oldErr[0] : null;
+    	
+    	var $newErr = $(template);
+    	$newErr.addClass('validation-error-msg');
+    	
+    	var $this = $(this);
+    	$this.addClass('validation-error');
+    	$this.trigger('showerror', [context, msg, oldErr, $newErr[0]]);
+	}	
+
     function processErrorMsg(msg) {
         var $context;
 
@@ -135,25 +165,10 @@
         else
             $context = $this;
 
-        var $err = $context.next('.validation-error-msg');
-        $err.popover('destroy');
-        $err.remove();
-
-        if (msg) {
-            $this.closest('.control-group').addClass('error');
-
-            var template = _template || _defaultTemplate;
-            $err = $(template);
-            $err.addClass('validation-error-msg');
-            $context.after($err);
-            $err.popover({ title: 'Error', placement: 'right', trigger: 'hover', content: msg });
-
-            $this.addClass('validation-error');
-        }
-        else {
-            $this.closest('.control-group').removeClass('error');
-            $this.removeClass('validation-error');
-        }
+        if (msg)
+            $.proxy(showError, this)($context[0], msg);
+        else
+        	$.proxy(hideError, this)($context[0], msg);
     }
 
     function validateElement(force) {
@@ -312,6 +327,8 @@
         
         $(document).on('submit.validate', 'form.validate', onSubmit);
         $(document).on('blur.validate', '.validate input[type!="hidden"], .validate select, .validate textarea', onBlur);
+        $(document).on('showerror.validate', '.validate [data-validators]', onShowError);
+        $(document).on('hideerror.validate', '.validate [data-validators]', onHideError);
 
         $.validator = {
             addCustomValidators: function() {
@@ -324,7 +341,15 @@
                 $('.validate').each(function() {
                     $.proxy(validateContainer, this)(true);
                 });
-            }
+            },
+            showerror: function(fn) {
+            	$(document).off('showerror.validate');
+            	$(document).on('showerror.validate', '.validate [data-validators]', fn);
+			},
+			hideerror: function(fn) {
+				$(document).off('hideerror.validate');
+				$(document).on('hideerror.validate', '.validate [data-validators]', fn);
+			}
         };
 
         $.fn.validator = function (method) {
@@ -342,7 +367,7 @@
                         break;
 
 					case 'success':
-						if (options.length > 0) {
+						if (options.length > 0 && typeof options[0] === 'function') {
 							$(this).on('success.validate', options[0]);
 						}
 						break;
@@ -353,6 +378,32 @@
                             : $.proxy(processErrorMsg, this)(null)
                         ;
                         break;
+                    case 'showerror':
+                    	if (options.length > 0 && typeof options[0] === 'function') {
+                    		var fn = options[0];
+                    		$(this).off('showerror.validate');
+                    	
+                    		$(this).on('showerror.validate', function(e, context, msg, oldErr, newErr) {
+                    			fn(e, context, msg, oldErr, newErr);
+                    			
+                    			e.stopImmediatePropagation();
+                    			return false;
+                    		});
+                    	}
+                    	break;
+                    case 'hideerror':
+                    	if (options.length > 0 && typeof options[0] === 'function') {
+                    		var fn = options[0];
+                    		$(this).off('hideerror.validate');
+                    	
+							$(this).on('hideerror.validate', function(e, context, err) {
+								options[0](e, context, err);
+								
+								e.stopImmediatePropagation();
+								return false;
+							});
+						}
+						break;
                 }
             });
 
