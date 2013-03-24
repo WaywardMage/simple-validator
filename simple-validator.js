@@ -156,8 +156,8 @@
         
         if ($this.data('error-after'))
             $context = $($this.data('error-after')).first();
-        else if ($this.data('error-after-local'))
-            $context = $($this.data('error-after-local'), $this).first();
+        else if ($this.data('error-after-child'))
+            $context = $($this.data('error-after-child'), $this).first();
         else if ($this.data('error-after-closest'))
             $context = $this.closest($this.data('error-after-closest')).first();
         else if ($this.data('error-after-sibling'))
@@ -368,6 +368,7 @@
 
 					case 'success':
 						if (options.length > 0 && typeof options[0] === 'function') {
+							$(this).off('success.validate');
 							$(this).on('success.validate', options[0]);
 						}
 						break;
@@ -378,6 +379,7 @@
                             : $.proxy(processErrorMsg, this)(null)
                         ;
                         break;
+
                     case 'showerror':
                     	if (options.length > 0 && typeof options[0] === 'function') {
                     		var fn = options[0];
@@ -391,6 +393,7 @@
                     		});
                     	}
                     	break;
+
                     case 'hideerror':
                     	if (options.length > 0 && typeof options[0] === 'function') {
                     		var fn = options[0];
