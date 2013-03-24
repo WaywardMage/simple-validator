@@ -40,7 +40,7 @@ Of course, your newly validatable form won't be of much use without some validat
 
 This example uses `required`, the simplest built-in validator available. Go ahead and try to submit the form without filling in the text box. Now type something in the box and tab out of it, then submit. **See how easy that was?**
 
-**Tip:** If all you got after a bad submit was the word 'Required', you need to load a style plugin!
+(**Tip:** If all you got after a bad submit was the word 'Required', you need to load a style plugin!)
 
 ### Basic Validators
 
@@ -121,9 +121,9 @@ You don't necessarily need a submit to validate the form. You can trigger valida
 
 All the regular validation messages will appear/disappear during manual valiation, so you don't have to do anything extra for them.
 
-## Custom Submit Hooks
+### Custom Submit Hooks
 
-Because of the way jQuery selectors handle events, hooking the `submit` event is a no-no for validated forms. Instead, use the custom `success` event provided by the library:
+Because of the way jQuery selectors handle events, hooking the `submit` event is a no-no for validated forms. Instead, use the `success` event handler provided by the library:
 
 	$(document).ready(function() {
 		$('#myForm').validator('success', myHandler);
@@ -132,7 +132,7 @@ Because of the way jQuery selectors handle events, hooking the `submit` event is
 
 Just like `submit`, you can return false and/or use `e.preventDefault()` to stop postback, i.e. for AJAX handling.
 
-## Reset Validation
+### Reset Validation
 
 To reset all validation messages and states, just call:
 
