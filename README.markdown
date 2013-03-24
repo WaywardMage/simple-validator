@@ -141,7 +141,7 @@ To reset all validation messages and states, just call:
 
 ## Advanced Usage
 
-While made with simplicity in mind, Simple Validator also has several API hooks lurking under the hood if you want to get fancy.
+While made with simplicity in mind, Simple Validator has several API hooks lurking under the hood if you want to get fancy.
 
 ### Custom Error Template
 
