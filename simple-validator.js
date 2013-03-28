@@ -6,7 +6,60 @@
     // Stock validators.
     //
     var _validators = {
-        'required': function(value) {
+        'ajax': function (value) {
+            var $this = $(this);
+            
+            // assume valid.  Assuming invalid here creates an implicit "required" and we'll leave that up to the "required" validator.
+            var valid = true;
+
+            if (value) {
+                var route = $this.data('ajax-route');
+                // if the route isn't found, we'll just call this a validation failure.
+                if (!route) return "Invalid route";
+                
+                // find the control by its id
+                var property = $(this).attr("id");
+                
+                // we didn't have an id assigned, try get the name.
+                if (!property) property = $(this).attr("name");
+                
+                // if we have no name, we have no idea what to validate on the other end, so just assume success.
+                if (!property) return null;
+                
+                var dataFields = {};
+                
+                dataFields[property] = value;
+
+                //process any additional fields we'll be sending along
+                var additionalFieldsList = $(this).data("additional-fields");
+                if (additionalFieldsList) {
+                    var additionalFields = additionalFieldsList.split(/,?\s+/);
+                    $.each(additionalFields, function (index, field) {
+                        var control = $("#" + field);
+                        if (control) {
+                            var fieldValue = control.val();
+                            dataFields[field] = fieldValue;
+                        }
+                    });
+                }
+
+                $.ajax({
+                    url: route,
+                    type: 'POST',
+                    async: false,
+                    dataType: 'json',
+                    data: dataFields,
+                    success: function (result) {
+                        valid = result;
+                    },
+                    error: function () {
+                        valid = false;
+                    }
+                });
+            }
+            return valid ? null : "Remote validation failed";
+        },
+        'required': function (value) {
             return !value ? 'Required' : null;
         },
         'stringlength': function(value) {
